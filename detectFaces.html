@@ -3,12 +3,14 @@
 <head>
     <title>Detect Faces Sample</title>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
-    <script type="text/javascript" src="text_analysis.js"></script>
 </head>
 <body>
 
 <script type="text/javascript">
-    function processImage() {
+
+    // take in a url of jpeg format
+    function processImage(sourceImageUrl) {
+        console.log('called');
 
         var subscriptionKey = "020c209c97f14c9b955ced23a280e566";
 
@@ -22,7 +24,7 @@
         };
 
         // Display the image.
-        var sourceImageUrl = document.getElementById("inputImage").value;
+       
         document.querySelector("#sourceImage").src = sourceImageUrl;
 
         // Perform the REST API call.
@@ -61,7 +63,7 @@
 Enter the URL to an image that includes a face or faces, then click the <strong>Analyze face</strong> button.
 <br><br>
 Image to analyze: <input type="text" name="inputImage" id="inputImage" value="https://upload.wikimedia.org/wikipedia/commons/c/c3/RH_Louise_Lillian_Gish.jpg" />
-<button onclick="processImage()">Analyze face</button>
+<button onclick="processImage('https://scontent-lax3-1.cdninstagram.com/vp/a54f2f0075ee8d560b5ab9143b6d3e34/5B30074B/t51.2885-15/e35/28156423_402534350207448_5780298095128477696_n.jpg')">Analyze face</button>
 <br><br>
 <div id="wrapper" style="width:1020px; display:table;">
     <div id="jsonOutput" style="width:600px; display:table-cell;">
