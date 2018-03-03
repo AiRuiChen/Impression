@@ -3,6 +3,7 @@ var express = require('express');
 var app = express();
 var request = require('request');
 var cheerio = require('cheerio');
+var async = require('async');
 
 // global vars
 var port = 3000;
@@ -16,9 +17,7 @@ app.get('/test', function (req, res) {
     res.sendFile('/home/marcus/sentiment/detectFaces.html');
 });
 
-function processImage() {
-
-    var subscriptionKey = "020c209c97f14c9b955ced23a280e566";
+var createUrl = function () {
     var uriBase = "https://westcentralus.api.cognitive.microsoft.com/face/v1.0/detect";
 
     // Request parameters.
@@ -28,39 +27,57 @@ function processImage() {
         "returnFaceAttributes": "age,gender,headPose,smile,facialHair,glasses,emotion,hair,makeup,occlusion,accessories,blur,exposure,noise",
     };
 
-    // Display the image.
-    var sourceImageUrl = document.getElementById("inputImage").value;
-    document.querySelector("#sourceImage").src = sourceImageUrl;
+    var url = uriBase + "?";
+    var numParams = Object.keys(params).length;
+    var count = 0;
+    for (var k in params) {
+        url += k + '=' + encodeURIComponent(params[k]);
+        if (count < numParams-1) {
+            url += '&';
+        }
+        count += 1;
+    }
+    // https://westcentralus.api.cognitive.microso1ft.com/face/v1.0/detect?returnFaceId=true&returnFaceLandmarks=false&returnFaceAttributes=age%2Cgender%2CheadPose%2Csmile%2CfacialHair%2Cglasses%2Cemotion%2Chair%2Cmakeup%2Cocclusion%2Caccessories%2Cblur%2Cexposure%2Cnoise
+    return url;
+}
 
-    // Perform the REST API call.
-    $.ajax({
-        url: uriBase + "?" + $.param(params),
-
-        // Request headers.
-        beforeSend: function(xhrObj){
-            xhrObj.setRequestHeader("Content-Type","application/json");
-            xhrObj.setRequestHeader("Ocp-Apim-Subscription-Key", subscriptionKey);
+var processImage = function (sourceImageUrl, cb) {
+    var subscriptionKey = "020c209c97f14c9b955ced23a280e566";
+    var options = {
+        uri: createUrl(),
+        headers: {
+            'Content-Type':'application/json',
+            'Ocp-Apim-Subscription-Key':subscriptionKey
         },
+        body: '{"url": ' + '"' + sourceImageUrl + '"}'
+    }
 
-        type: "POST",
-
-        // Request body.
-        // sourceImageUrl is what you actually supply to the function as a query
-        data: '{"url": ' + '"' + sourceImageUrl + '"}',
-    })
-
-    .done(function(data) {
-        // Show formatted JSON on webpage.
-        $("#responseTextArea").val(JSON.stringify(data, null, 2));
-    })
-
-    .fail(function(jqXHR, textStatus, errorThrown) {
-        // Display error message.
-        var errorString = (errorThrown === "") ? "Error. " : errorThrown + " (" + jqXHR.status + "): ";
-        errorString += (jqXHR.responseText === "") ? "" : (jQuery.parseJSON(jqXHR.responseText).message) ?
-            jQuery.parseJSON(jqXHR.responseText).message : jQuery.parseJSON(jqXHR.responseText).error.message;
-        alert(errorString);
+    request.post(options, function(err, res, body) {
+        cb(body);
     });
+};
+
+// takes an array of instagram post objects [ {}, {}, ... ]
+var processAllPosts = function(posts) {
+            console.log('adsf')
+
+    // for (var k in posts) {
+    //     processImage(posts[k].display_url, function(body) {
+    //         console.log(posts[k].display_url + ': ' + body);
+    //     });
+    // }
+    // var test = 'https://scontent-lax3-1.cdninstagram.com/vp/a54f2f0075ee8d560b5ab9143b6d3e34/5B30074B/t51.2885-15/e35/28156423_402534350207448_5780298095128477696_n.jpg';
+    
+    async.eachLimit(posts, 20,
+        function(post, cb) {
+            processImage(post.display_url, function (body) {
+                console.log("done");
+                console.log(body);
+                cb();
+            });
+        }, function(err) {
+            if (err) return console.log(err);
+        });
 };
 
 // scrape relevant info from instagram
@@ -113,17 +130,27 @@ var extractData = function (data) {
         }
     });
     // console.log('////////////////////////////////');
-    console.log(processed);
+    // console.log(processed);
     return processed;
 };
 
-var searchUrl = 'https://www.instagram.com/explore/tags/beach/';
-request(searchUrl, function (err, res, data) {
-    if (!err && res.statusCode === 200) {
-        var processed = extractData(data);
+var main = function() {
+    // scrape instagram
+    var searchUrl = 'https://www.instagram.com/explore/tags/beach/';
+    request(searchUrl, function (err, res, data) {
+        if (!err && res.statusCode === 200) {
 
-    }
-});
+            // extract useful info from raw scrape
+            var posts = extractData(data);
+
+            console.log('finished extracting');
+            // process each post
+            processAllPosts(posts);
+        }
+    });
+};
+
+main();
 
 app.listen(port, function () {
     console.log('listening on ' + port);
