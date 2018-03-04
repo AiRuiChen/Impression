@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="Scripts/angular.min.js"></script>
+    <script src="app.js"></script>
+    <script src="tone_analysis.js"></script>
+    <script src="text_analysis.js"></script>
+    <script src="transcriptVideo.js"></script>
+</head>
+<body ng-app="myApp">
+<div ng-controller="myCtrl">
+    <form>
+        Title:
+        <input type="text" ng-model="title">
+        <br>
+        <br> Url:
+        <input type="text" ng-model="url">
+        <br>
+        <br> Body:
+        <input type="author" ng-model="body">
+        <br>
+        <br>
+        <input type="submit" value="Submit" ng-click="submit()">
+    </form>
+</div>
+</body>
