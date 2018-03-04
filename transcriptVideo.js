@@ -4,35 +4,35 @@ const Vindexer = new vindexer("cc55abab2c1b4bf4b3616591f76bf8ec");
 // var videoUrl: "http://techslides.com/demos/sample-videos/small.mp4",
 
 // Upload video via a URL and generate intelligent insights. If no URL is specified, the file should be passed as a multipart/form body content.
-var convert_speech_to_text = function(videoUrl) {
-	Vindexer.uploadVideo({
-		// Optional
-		videoUrl: videoUrl,
-		name: 'sample-video',
-		privacy: 'Private',
-		language: 'English',
-		externalId: 'customvideoid',
-		description: 'instagram demo',
-		partition: 'demos',
-	}).then(function (result) {
-		console.log(result.body);
-		videoId = result.body;
-		video_id = result.body.substr(1, 10); // without quotes
-		Vindexer.waitForProcessing(video_id).then(function (result) {
-			console.log(result.body);
+// var convert_speech_to_text = function(videoUrl) {
+// 	Vindexer.uploadVideo({
+// 		// Optional
+// 		videoUrl: videoUrl,
+// 		name: 'sample-video',
+// 		privacy: 'Private',
+// 		language: 'English',
+// 		externalId: 'customvideoid',
+// 		description: 'instagram demo',
+// 		partition: 'demos',
+// 	}).then(function (result) {
+// 		console.log(result.body);
+// 		videoId = result.body;
+// 		video_id = result.body.substr(1, 10); // without quotes
+// 		Vindexer.waitForProcessing(video_id).then(function (result) {
+// 			console.log(result.body);
 
-			Vindexer.getProcessingState(video_id).then(function (result) {
-				console.log(result.body);
-				console.log('Completed! Now break down the result');
-				Vindexer.getBreakdown(video_id)
-					.then(function (result) {
-						console.log(result.body);
-						return result.body;
-					});
-			});
-		});
-	});
-};
+// 			Vindexer.getProcessingState(video_id).then(function (result) {
+// 				console.log(result.body);
+// 				console.log('Completed! Now break down the result');
+// 				Vindexer.getBreakdown(video_id)
+// 					.then(function (result) {
+// 						console.log(result.body);
+// 						return result.body;
+// 					});
+// 			});
+// 		});
+// 	});
+// };
 
 // convert_speech_to_text();
 var get_video_script = function (id, cb) {
@@ -64,8 +64,8 @@ var analyzeTone = function() {
 	  version_date: '2017-09-21'
 	});
 
-	var videoId = '88287d577a';
-	// var videoId = 'ee86da7f6e';
+	// var videoId = '610e978433';
+	var videoId = 'c098201a0a';
 	get_video_script(videoId, function(script) {
 
 		var params = {

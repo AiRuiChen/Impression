@@ -17,7 +17,7 @@ app.controller('myCtrl',
 			// get request
 			$http({
 				method: 'GET',
-				url: '/single_result'
+				url: '/all_results'
 			}).then(function successCallback(response) {
 				// handle success
 				$scope.posts = response.data.posts;

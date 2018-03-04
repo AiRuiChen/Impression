@@ -29,7 +29,7 @@ var getAll =function(instagramTag, fileName) {
     });
 }
 
-getAll('soylent', 'all_results');
+// getAll('soylent', 'all_results');
 
 // endpoints
 app.get('/', function (req, res) {
