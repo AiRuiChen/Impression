@@ -19,7 +19,6 @@
   "dependencies": {
     "@angular/common": "^5.2.7",
     "@angular/compiler": "^2.4.10",
-    "@angular/core": "^5.2.7",
     "@angular/forms": "^5.2.7",
     "@ng-bootstrap/ng-bootstrap": "^1.0.0",
     "angular": "^1.6.9",
