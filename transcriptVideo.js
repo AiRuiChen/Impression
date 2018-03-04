@@ -12,7 +12,7 @@ Vindexer.uploadVideo({
 	language: 'English',
 	externalId: 'customvideoid',
 	description: 'Check out this great demo video!',
-	partition: 'demos'
+	partition: 'demos',
 })
 	.then(function (result) {
 		console.log(result.body);
