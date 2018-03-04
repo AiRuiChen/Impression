@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html ng-app="myApp" lang="en">
+<head>
+    <script src="node_modules/angular/angular.js"></script>
+    <script src="node_modules/angular-aria/angular-aria.js"></script>
+    <script src="node_modules/angular-animate/angular-animate.js"></script>
+    <script src="node_modules/angular-messages/angular-messages.js"></script>
+    <script src="node_modules/angular-material/angular-material.js"></script>
+    <script src="app.js"></script>
+
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no"/>
+    <!--<link rel="stylesheet" href="/node_modules/angular-material/angular-material.css">-->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+</head>
+<h1 style="
+/*style goes here*/
+"></h1>
+<body>
+
+<div ng-controller="myCtrl">
+    <div class="dropdown">
+        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Dropdown button
+        </button>
+        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+            <a class="dropdown-item" href="#">Action</a>
+            <a class="dropdown-item" href="#">Another action</a>
+            <a class="dropdown-item" href="#">Something else here</a>
+        </div>
+    </div>
+    <div class="form-group input-group mb-3">
+        <select ng-model="selectMethod" ng-options="x for x in searchMethods"></select>
+        <input type="text" class="form-control" placeholder="{{selectMethod}}" aria-label="Username"
+               aria-describedby="basic-addon1">
+    </div>
+
+    <!--20 Media Cards-->
+    <div class="row">
+        <div class="col-4" ng-repeat="obj in myObj">
+
+            <md-content class="md-padding text-center" layout-xs="column" layout="row">
+                <div class="card" style="width: 18rem;">
+                    <img class="card-img-top" src="{{imagePath}}" alt="Card image cap">
+                    <div class="card-body">
+                        <h5 class="card-title">{{obj.anger}}</h5>
+                        <p class="card-text">Some quick example text to build on the card title and make up the bulk of
+                            the
+                            card's content.</p>
+                        <a href="#" class="btn btn-primary">Go somewhere</a>
+                    </div>
+                </div>
+            </md-content>
+
+        </div>
+    </div>
+
+
+</div>
+</body>
+</html>

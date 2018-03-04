@@ -17,13 +17,18 @@
   },
   "homepage": "https://github.com/AiRuiChen/hacktech2018#readme",
   "dependencies": {
+    "angular": "^1.6.9",
+    "angular-animate": "^1.6.9",
+    "angular-aria": "^1.6.9",
+    "angular-material": "^1.1.7",
+    "angular-messages": "^1.6.9",
     "async": "^2.6.0",
     "cheerio": "^1.0.0-rc.2",
     "express": "^4.16.2",
     "fluent-ffmpeg": "^2.1.2",
     "request": "^2.83.0",
-    "video-indexer": "",
-    "requirejs": "",
+    "requirejs": "^2.3.5",
+    "video-indexer": "^1.0.0",
     "watson-developer-cloud": "^2.39.0"
   }
 }
