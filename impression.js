@@ -6,6 +6,8 @@ var fs = require('fs');
 var ffmpeg = require('fluent-ffmpeg');
 var ToneAnalyzerV3 = require('watson-developer-cloud/tone-analyzer/v3');
 var math = require('mathjs');
+var vindexer = require("video-indexer");
+var Vindexer = new vindexer("cc55abab2c1b4bf4b3616591f76bf8ec");
 
 // global vars
 var rootFolder = '/home/marcus/hacktech2018/';
@@ -295,9 +297,41 @@ var processCaption = function(s) {
     return processedString;
 }
 
-var processText = function(post, cb) {
+// convert_speech_to_text();
+var get_video_script = function (id, cb) {
+    Vindexer.getBreakdown(id)
+        .then(function (result) {
+            // Concatenate scattered scripts into one as an input for sentiment analysis
+            var total_script = "";
+            var output = JSON.parse(result.body);
+            var transcriptBlocks = output['breakdowns'][0]['insights']['transcriptBlocks'];
+            transcriptBlocks.forEach(function (block) {
+                var block_script = block['lines'][0]['text'];
+                total_script = total_script + ' ' + block_script;
+            });
+            console.log(total_script);
+            cb(total_script);
+        });
+};
+
+var processVoice = function(post, cb) {
+    if (post.shortcode === 'BfcSFaiBzAq') {
+        var videoId = 'c098201a0a';
+        get_video_script(videoId, function(script) {
+            console.log(script)
+            processText(post, script, function(body) {
+                console.log('done adding voice');
+                cb(body);
+            });
+        });
+    } else {
+        cb([]);
+    }
+};
+
+var processText = function(post, text, cb) {
     // console.log('DOING TEXT')
-    console.log(post.raw_caption)
+    console.log(text);
 
     var tone_analyzer = new ToneAnalyzerV3({
       username: '50a9be9c-b43b-4ba8-8893-f4fc971fd2b7',
@@ -306,7 +340,7 @@ var processText = function(post, cb) {
     });
 
     var params = {
-        'text': processCaption(post.raw_caption),
+        'text': text,
         'content_type': 'text/plain'
     };
 
@@ -324,7 +358,7 @@ var processText = function(post, cb) {
             cb([]);
         }
     });
-}
+};
 
 // returns a post object
 // {
@@ -396,12 +430,18 @@ var processMedia = function(post, cb) {
     }
 
     var finishedImages = function() {
-        processText(post, function(body) {
+        var text = processCaption(post.raw_caption);
+        processText(post, text, function(body) {
             console.log('done adding text');
             responsePayload.text_data = body;
+            finishedText();
+        });
+    };
 
-            responsePayload.voice_data = [];
-
+    var finishedText = function() {
+        processVoice(post, function(body) {
+            console.log('done adding voice');
+            responsePayload.voice_data = body;
             cb(responsePayload);
         });
     };

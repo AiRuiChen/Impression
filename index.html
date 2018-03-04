@@ -59,6 +59,9 @@
         height: 150px;
         margin: 20px;
     }
+    .spacer {
+        margin: 0 30px;
+    }
     .anger {
         background-color: red;
     }
@@ -93,6 +96,7 @@
 <div ng-controller="myCtrl" class="background">
 
     <div class="container" ng-init="init()">
+    <!-- <div class="container"> -->
       <div class="row">
         <div class="col-md-8">
             <div class="form-group input-group mb-3">
@@ -112,50 +116,49 @@
             <div class="col-md-3">
                 <div class="emotion-box anger">
                     Anger
-                    {{score.anger | number : 3}}
+                    {{score.anger | number : 3}}%
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="emotion-box contempt">
                     Contempt
-                    {{score.contempt | number : 3}}
-
+                    {{score.contempt | number : 3}}%
                 </div>        
             </div>
             <div class="col-md-3">
                 <div class="emotion-box disgust">
                     Disgust
-                    {{score.disgust | number : 3}}
+                    {{score.disgust | number : 3}}%
                 </div>        
             </div>
             <div class="col-md-3">
                 <div class="emotion-box fear">
                     Fear
-                    {{score.fear | number : 3}}
+                    {{score.fear | number : 3}}%
                 </div>        
             </div>
             <div class="col-md-3">
                 <div class="emotion-box happiness">
                     Happiness
-                    {{score.happiness | number : 3}}
+                    {{score.happiness | number : 3}}%
                 </div>        
             </div>
             <div class="col-md-3">
                 <div class="emotion-box neutral">
                     Neutral
-                    {{score.neutral | number : 3}}
+                    {{score.neutral | number : 3}}%
                 </div>        
             </div>
             <div class="col-md-3">
                 <div class="emotion-box sadness">
                     Sadness
-                    {{score.sadness | number : 3}}
+                    {{score.sadness | number : 3}}%
                 </div>        
             </div>
             <div class="col-md-3">
                 <div class="emotion-box surprise">
                     Surprise
-                    {{score.surprise | number : 3}}
+                    {{score.surprise | number : 3}}%
                 </div>        
             </div>
           </div>
@@ -163,7 +166,7 @@
 
         <!--20 Media Cards-->
         <div class="row">
-            <div class="md-col-6" ng-repeat="obj in posts">
+            <div class="md-col-6 spacer" ng-repeat="obj in posts">
 
                 <md-content class="md-padding text-center" layout-xs="column" layout="row">
                     <div class="card" style="width: 30rem;">
