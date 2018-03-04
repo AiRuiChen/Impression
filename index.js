@@ -5,9 +5,11 @@ var request = require('request');
 var cheerio = require('cheerio');
 var async = require('async');
 var fs = require('fs');
+var ffmpeg = require('fluent-ffmpeg');
 
 // global vars
 var port = 3000;
+var rootFolder = '/home/marcus/hacktech2018/';
 
 // endpoints
 app.get('/', function (req, res) {
@@ -15,7 +17,11 @@ app.get('/', function (req, res) {
 });
 
 app.get('/test', function (req, res) {
-    res.sendFile('/home/marcus/hacktech2018/test.html');
+    res.sendFile(rootFolder + 'video_analysis.html');
+});
+
+app.get('/testmp4', function (req, res) {
+    res.sendFile(rootFolder + 'test2.mp4');
 });
 
 var createUrl = function () {
@@ -42,48 +48,141 @@ var createUrl = function () {
     return url;
 }
 
-var processImage = function (sourceImageUrl, cb) {
+var processImage = function (payload, contentType, cb) {
     var subscriptionKey = "020c209c97f14c9b955ced23a280e566";
     var options = {
         uri: createUrl(),
         headers: {
-            'Content-Type':'application/json',
+            'Content-Type': contentType,
             'Ocp-Apim-Subscription-Key':subscriptionKey
         },
-        body: '{"url": ' + '"' + sourceImageUrl + '"}'
+        body: payload
     }
 
     request.post(options, function(err, res, body) {
-        cb(body);
+        var extractedEmotions = JSON.parse(body).map(obj => obj.faceAttributes.emotion);
+        cb(extractedEmotions);
     });
 };
 
+var generateScreenshots = function(filePath, count, cb) {
+    var command =
+        ffmpeg(filePath)
+          .on('filenames', function(filenames) {
+            console.log('Will generate ' + filenames.join(', '))
+          })
+          .on('end', function() {
+            console.log('Screenshots taken');
+            cb();
+          })
+          .screenshots({
+            count: count,
+            folder: rootFolder + 'frames'
+          });
+};
+
+var processVideo = function(filePath, cb) {
+    var count = 5;
+    var prefix = 'tn_';
+    var extension = '.png';
+    var files = [];
+    for (var i = 0; i < count; i++) {
+        files.push(prefix + (i+1) + extension)
+    }
+
+    generateScreenshots(filePath, count, function() {
+        var itemsProcessed = 0;
+        var frames = [];
+
+        files.forEach(function (file, i, arr) {
+            fs.readFile(rootFolder + 'frames/' + file, function(err, data) {
+                if (err) throw err;
+                processImage(data, 'application/octet-stream', function (body) {
+                    if (!frames.length) {
+                        frames = body;
+                    } else {
+                        frames = frames.concat(body);
+                    }
+                    itemsProcessed++;
+                    if(itemsProcessed === arr.length) {
+                      cb(frames);
+                    }
+                });
+            });
+        });
+
+    });
+};
+
+// returns a post object
+// {
+//     'is_video': true,
+//     'frame_data': [
+//       {
+//         'anger': 0.037,
+//         'contempt': 0.001,
+//         'disgust': 0.015,
+//         'fear': 0.001,
+//         'happiness': 0.939,
+//         'neutral': 0.001,
+//         'sadness': 0.0,
+//         'surprise': 0.007
+//       },
+//       ...
+//     ],
+//     'text_data': [
+//       {
+//         'score': 0.647322,
+//         'tone_id': 'anger',
+//         'tone_name': 'Anger'
+//       },
+//       ...
+//     ],
+//     'voice_data': [
+//       {
+//         'score': 0.647322,
+//         'tone_id': 'anger',
+//         'tone_name': 'Anger'
+//       },
+//       ...
+//     ]
+// }
 var processMedia = function(post, cb) {
     if (post.is_video) {
-        processVideo(post.shortcode)
+        processVideo(post.video_url, function(body) {
+            console.log('done processing video: ' + JSON.stringify(body));
+            cb(body);
+        });
     } else {
-        processImage(post.display_url, function (body) {
+        var payload = '{"url": ' + '"' + post.display_url + '"}'
+        processImage(payload, 'application/json', function(body) {
+            console.log('done processing image' + body);
             cb(body);
         });
     }
 }
 
 // takes an array of instagram post objects [ {}, {}, ... ]
-var processAllPosts = function(posts) {
-    async.eachLimit(posts, 1,
-        function(post, cb) {
-            processMedia(post, function(body) {
-                console.log("done");
-                console.log(body);
-                cb();
-            });
-        }, function(err) {
-            if (err) return console.log(err);
+var processAllPosts = function(posts, allDone) {
+
+    var itemsProcessed = 0;
+    var allPosts = [];
+
+    posts.forEach(function (post, i, arr) {
+        processMedia(post, function(body) {
+            allPosts.push(body);
+            itemsProcessed++;
+            if(itemsProcessed === arr.length) {
+              allDone(allPosts);
+            };
         });
+    });
+
+
 };
 
 // scrape relevant info from instagram
-var extractData = function (data) {
+var extractAllPosts = function (data) {
     var $ = cheerio.load(data);
     var strMatch = 'window._sharedData = ';
     var processed = [];
@@ -172,7 +271,7 @@ var addVideoUrls = function(posts, outerCb) {
         });
 }
 
-var extractSinglePost = function(shortcode) {
+var extractSinglePost = function(shortcode, cb) {
     var searchUrl = 'https://www.instagram.com/p/' + shortcode;
     var called = false;
 
@@ -186,7 +285,6 @@ var extractSinglePost = function(shortcode) {
             $('meta').each(function(i, element){
                 if (element.attribs.property === 'og:video:secure_url') {
                     video_url = element.attribs.content;
-                    return false;
                 }
             });
             
@@ -211,51 +309,58 @@ var extractSinglePost = function(shortcode) {
                     }
                 }
             });
-
-            return processed;
+            console.log(processed)
+            cb(processed);
 
         } else {
-            return {
+            cb({
                 shortcode: shortcode,
                 error: 'true'
-            }
+            });
         }
     });    
 }
 
-// extractSinglePost('BfjLmGPHSh-');
-// extractSinglePost('BdAuTvHhcVe')
-
-var main = function() {
+var doAll = function() {
     // scrape instagram
     var searchUrl = 'https://www.instagram.com/explore/tags/soylent/';
     request(searchUrl, function (err, res, data) {
         if (!err && res.statusCode === 200) {
 
             // extract useful info from raw scrape
-            var posts = extractData(data);
+            var posts = extractAllPosts(data);
 
             // populating video urls
             addVideoUrls(posts, function(err) {
-                if (err) {
-                    console.log('ERROR')
-                    console.log(err)
-                }
+                if (err) throw err;
                 // console.log('///////////')
                 // console.log(posts);
                 // fs.writeFile('test.json', JSON.stringify(posts, null, 4), 'utf8');
             });
 
             console.log('finished extracting');
-            extractSinglePost('BfjLmGPHSh-');
-            
+
             // process each post
-            // processAllPosts(posts);
+            processAllPosts(posts);
         }
     });
 };
 
-// main();
+var doOne = function(shortcode) {
+    extractSinglePost(shortcode, function(post) {
+        processAllPosts([post], function(posts){
+            console.log('DONE');
+            console.log(posts);
+        }); 
+    });
+}
+
+var main = function () {
+    // doOne('BdAuTvHhcVe');
+    doOne('BfjLmGPHSh-');
+}
+
+main();
 
 
 app.listen(port, function () {
