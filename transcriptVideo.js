@@ -73,10 +73,10 @@ var analyzeTone = function() {
 		  'content_type': 'text/plain'
 		};
 		tone_analyzer.tone(params, function(error, response) {
-		  if (error){ 
+		  if (error){
 		    console.log('error:', error);
 		  } else {
-		    // console.log(JSON.stringify(response, null, 2));
+		    console.log(JSON.stringify(response, null, 2));
 		  }
 		});
 
