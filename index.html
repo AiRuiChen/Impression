@@ -60,7 +60,7 @@
         margin: 20px;
     }
     .spacer {
-        margin: 0 30px;
+        margin: 30px;
     }
     .anger {
         background-color: red;
@@ -74,17 +74,21 @@
     .fear {
         background-color: green;
     }
-    .happiness {
+    .happiness, .image {
         background-color: yellow;
     }
-    .neutral {
+    .neutral, .caption {
         background-color: grey;
     }
-    .sadness {
+    .sadness, .audio {
         background-color: blue;
     }
-    .surprise {
+    .surprise, .video {
         background-color: orange;
+    }
+    .footer {
+        width: 100%;
+        height: 100%;
     }
     </style>
 </head>
@@ -187,11 +191,40 @@
                                 <div class="col">
                                 <div class=""
                             </div>
-                            <div class="row">
+                            
+                            <!-- <div class="row">
                                 <textarea class="inset">
                                     {{obj | json}}
                                 </textarea>
+                            </div> -->
+
+                            <div ng-if="obj.voice_data.length" class="row"> 
+                                <div ng-if="obj.metadata.is_video" class="col-md-4 footer video">
+                                {{getMaxFrame(obj)}}
+                                </div>
+                                <div ng-if="!obj.metadata.is_video" class="col-md-4 footer image">
+                                {{getImage(obj)}}
+                                </div>
+                                <div class="col-md-4 footer caption">
+                                {{getMaxText(obj)}}
+                                </div>
+                                <div class="col-md-4 footer audio">
+                                {{getMaxAudio(obj)}}
+                                </div>
                             </div>
+
+                            <div ng-if="!obj.voice_data.length" class="row">
+                                <div ng-if="!obj.metadata.is_video" class="col-md-6 footer video">
+                                {{getImage(obj)}}
+                                </div>
+                                <div ng-if="obj.metadata.is_video" class="col-md-6 footer image">
+                                {{getMaxFrame(obj)}}
+                                </div>
+                                <div class="col-md-6 footer caption">
+                                {{getMaxText(obj)}}
+                                </div>
+                            </div>
+
                         </div>
 
                     </div>

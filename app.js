@@ -22,10 +22,10 @@ app.controller('myCtrl',
 				// handle success
 				$scope.posts = response.data.posts;
 				$scope.score = response.data.score;
-				console.log(response.data);
+				$log.log(response.data);
 			}, function errorCallback(response) {
 				// handle error
-				console.log(JSON.stringify("Failed to get t&c: " + response));
+				$log.log(JSON.stringify("Failed to get t&c: " + response));
 			});
 		}
 
@@ -51,7 +51,7 @@ app.controller('myCtrl',
 				$scope.posts = response.data.posts;
 				$scope.score = response.data.score;
 			}, function errorCallback(response) {
-				console.log(JSON.stringify("Failed to get t&c: " + response));
+				$log.log(JSON.stringify("Failed to get t&c: " + response));
 			});
 		}
 
@@ -63,5 +63,87 @@ app.controller('myCtrl',
 
 		$scope.processRawData = function(obj) {
 			return JSON.stringify(obj, null, 2);
+		}
+
+		$scope.getMaxText = function(obj) {
+			var maxScore = 0;
+			var maxObj;
+			angular.forEach(obj.text_data, function(value) {
+				if (value.score > maxScore) {
+					maxScore = value.score;
+					maxObj = value;
+				}
+			});
+			return 'Text: ' + JSON.stringify(maxObj);
+		}
+
+		$scope.getMaxFrame = function(obj) {
+			var maxScore = 0;
+			var maxObj;
+			var length = 0;
+
+			$log.log(obj.frame_data);
+
+			averages = {
+				'anger': 0,
+		        'contempt': 0,
+		        'disgust': 0,
+		        'fear': 0,
+		        'happiness': 0,
+		        'neutral': 0,
+		        'sadness': 0,
+		        'surprise': 0
+			}
+			angular.forEach(obj.frame_data, function(value) {
+				averages.anger += value.anger;
+				averages.contempt += value.contempt;
+				averages.disgust += value.disgust;
+				averages.fear += value.fear;
+				averages.happiness += value.happiness;
+				averages.neutral += value.neutral;
+				averages.sadness += value.sadness;
+				averages.surprise += value.surprise;
+				length += 1;
+			});
+			averages.anger /= length;
+			averages.contempt /= length;
+			averages.disgust /= length;
+			averages.fear /= length;
+			averages.happiness /= length;
+			averages.neutral /= length;
+			averages.sadness /= length;
+			averages.surprise /= length;
+
+			$log.log(averages);
+
+			var maxScore = 0;
+			var maxKey;
+			angular.forEach(averages, function(value, key) {
+				if (value > maxScore) {
+					maxScore = value;
+					maxKey = key
+				}
+			});
+
+			return 'Frame: ' + JSON.stringify({
+				maxKey:maxKey,
+				maxScore:maxScore
+			});
+		}
+
+		$scope.getMaxAudio = function(obj) {
+			var maxScore = 0;
+			var maxObj;
+			angular.forEach(obj.voice_data, function(value) {
+				if (value.score > maxScore) {
+					maxScore = value.score;
+					maxObj = value;
+				}
+			});
+			return 'Audio: ' + JSON.stringify(maxObj);
+		}
+
+		$scope.getImage = function(obj) {
+			return 'Image: ' + JSON.stringify(obj.frame_data);
 		}
 	});

@@ -142,7 +142,6 @@ function getVideoData(Post, name) {
     return data;
 }
 
-// LOTS OF SPAGHETTI
 var createUrl = function () {
     var uriBase = "https://westcentralus.api.cognitive.microsoft.com/face/v1.0/detect";
 
@@ -298,29 +297,38 @@ var processCaption = function(s) {
 }
 
 // convert_speech_to_text();
-var get_video_script = function (id, cb) {
-    Vindexer.getBreakdown(id)
-        .then(function (result) {
-            // Concatenate scattered scripts into one as an input for sentiment analysis
-            var total_script = "";
-            var output = JSON.parse(result.body);
-            var transcriptBlocks = output['breakdowns'][0]['insights']['transcriptBlocks'];
-            transcriptBlocks.forEach(function (block) {
-                var block_script = block['lines'][0]['text'];
-                total_script = total_script + ' ' + block_script;
-            });
-            console.log(total_script);
-            cb(total_script);
-        });
+var get_video_script = function (id, flag, cb) {
+    if (flag) {
+        var str = "Hey everyone I'm here with should have come on we're talking about the fact that today's a great day for "
+        + "the Canadian film industry for the Indian film industry as we announcing coproductions lots of opportunities for "
+        + "Canada and India to work together on many things but. and everyone there in kind of the video. It's to disappoint "
+        + "this is in the world and they're talking about some food productions that have already started as you mentioned but "
+        + "for me personally I will be the master of shooting from Canada. I think some kind of an I've been requesting him that "
+        + "I would love to come there and participate in everything good that kind of extra will be bringing you know for sure I'll be there."
+        cb(str);
+    } else {
+        Vindexer.getBreakdown(id)
+            .then(function (result) {
+                // Concatenate scattered scripts into one as an input for sentiment analysis
+                var total_script = "";
+                var output = JSON.parse(result.body);
+                var transcriptBlocks = output['breakdowns'][0]['insights']['transcriptBlocks'];
+                transcriptBlocks.forEach(function (block) {
+                    var block_script = block['lines'][0]['text'];
+                    total_script = total_script + ' ' + block_script;
+                });
+                console.log(total_script);
+                cb(total_script);
+            });        
+        }
 };
 
 var processVoice = function(post, cb) {
     if (post.shortcode === 'BfcSFaiBzAq') {
         var videoId = 'c098201a0a';
-        get_video_script(videoId, function(script) {
+        get_video_script(videoId, 1, function(script) {
             console.log(script)
             processText(post, script, function(body) {
-                console.log('done adding voice');
                 cb(body);
             });
         });
@@ -413,6 +421,24 @@ var processMedia = function(post, cb) {
         
     }
 
+    var finishedText = function() {
+        processVoice(post, function(body) {
+            console.log('done adding voice');
+            responsePayload.voice_data = body;
+            cb(responsePayload);
+        });
+    };
+
+    var finishedImages = function() {
+        var text = processCaption(post.raw_caption);
+        processText(post, text, function(body) {
+            console.log('done adding text');
+            responsePayload.text_data = body;
+            finishedText();
+        });
+    };
+
+
     if (post.is_video) {
         console.log(post.video_url);
         processVideo(post.video_url, function(body) {
@@ -428,23 +454,6 @@ var processMedia = function(post, cb) {
             finishedImages();
         });
     }
-
-    var finishedImages = function() {
-        var text = processCaption(post.raw_caption);
-        processText(post, text, function(body) {
-            console.log('done adding text');
-            responsePayload.text_data = body;
-            finishedText();
-        });
-    };
-
-    var finishedText = function() {
-        processVoice(post, function(body) {
-            console.log('done adding voice');
-            responsePayload.voice_data = body;
-            cb(responsePayload);
-        });
-    };
 }
 
 // takes an array of instagram post objects [ {}, {}, ... ]
@@ -463,6 +472,7 @@ var processAllPosts = function(posts, allDone) {
     //     });
     // });
 
+    posts = posts.slice(0, 5);
     async.eachLimit(posts, 1,
     function(post, cb) {
         processMedia(post, function(body) {
